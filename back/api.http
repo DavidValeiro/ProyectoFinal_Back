@@ -1,0 +1,146 @@
+###
+# Pruebas de la API MOUSIN.
+# Requiere la extensión "REST Client" (humao.rest-client) en VS Code.
+# Ejecuta cada petición con el botón "Send Request" que aparece encima.
+#
+# Antes de empezar: arranca el servidor en local con `node index.js`
+# para que la API escuche en http://localhost:3000
+
+@baseUrl = http://localhost:3000
+
+# Rellena estos valores con ids reales devueltos por las peticiones de creación.
+@userId = REEMPLAZA_CON_UN_ID_DE_USUARIO
+@productId = REEMPLAZA_CON_UN_ID_DE_PRODUCTO
+@orderId = REEMPLAZA_CON_UN_ID_DE_PEDIDO
+
+### Comprobación de estado del servidor
+GET {{baseUrl}}/
+
+### ---------------------------------------------------------------
+### USUARIOS
+### ---------------------------------------------------------------
+
+### Crear usuario
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "David Valeiro",
+  "email": "david@example.com",
+  "password": "secreto123",
+  "is_admin": true
+}
+
+### Iniciar sesión
+# @name login
+POST {{baseUrl}}/users/login
+Content-Type: application/json
+
+{
+  "email": "david@example.com",
+  "password": "secreto123"
+}
+
+### Listar usuarios
+GET {{baseUrl}}/users
+
+### Obtener usuario por id
+GET {{baseUrl}}/users/{{userId}}
+
+### Actualizar usuario
+PUT {{baseUrl}}/users/{{userId}}
+Content-Type: application/json
+
+{
+  "name": "David Valeiro Actualizado",
+  "is_admin": true
+}
+
+### Eliminar usuario
+DELETE {{baseUrl}}/users/{{userId}}
+
+### ---------------------------------------------------------------
+### PRODUCTOS
+### ---------------------------------------------------------------
+
+### Crear producto
+POST {{baseUrl}}/products
+Content-Type: application/json
+
+{
+  "title": "Teclado mecánico MOUSIN Pro",
+  "subtitle": "Switches táctiles, retroiluminación RGB",
+  "price": 129.99,
+  "compareAtPrice": 159.99,
+  "badge": "Nuevo",
+  "category": "Periféricos / Teclados",
+  "description": "Teclado mecánico de grado profesional con estructura de aluminio.",
+  "rating": 4.5,
+  "reviews": 128,
+  "stock": 25,
+  "specs": [
+    { "icon": "keyboard_capslock", "label": "Switches", "value": "Táctiles" },
+    { "icon": "bolt", "label": "Conexión", "value": "USB-C" }
+  ],
+  "image": "https://example.com/images/keyboard.jpg",
+  "images": [
+    "https://example.com/images/keyboard.jpg",
+    "https://example.com/images/keyboard-2.jpg"
+  ]
+}
+
+### Listar productos
+GET {{baseUrl}}/products
+
+### Obtener producto por id
+GET {{baseUrl}}/products/{{productId}}
+
+### Actualizar producto
+PUT {{baseUrl}}/products/{{productId}}
+Content-Type: application/json
+
+{
+  "title": "Teclado mecánico MOUSIN Pro v2",
+  "price": 119.99,
+  "stock": 30
+}
+
+### Eliminar producto
+DELETE {{baseUrl}}/products/{{productId}}
+
+### ---------------------------------------------------------------
+### PEDIDOS
+### ---------------------------------------------------------------
+
+### Crear pedido (calcula el total y descuenta stock del producto)
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{
+  "user": "{{userId}}",
+  "products": [
+    { "product": "{{productId}}", "quantity": 2 }
+  ],
+  "orderStatus": "Pending"
+}
+
+### Listar pedidos
+GET {{baseUrl}}/orders
+
+### Obtener pedido por id
+GET {{baseUrl}}/orders/{{orderId}}
+
+### Actualizar pedido
+PUT {{baseUrl}}/orders/{{orderId}}
+Content-Type: application/json
+
+{
+  "user": "{{userId}}",
+  "products": [
+    { "product": "{{productId}}", "quantity": 1 }
+  ],
+  "orderStatus": "Shipped"
+}
+
+### Eliminar pedido (devuelve el stock a los productos)
+DELETE {{baseUrl}}/orders/{{orderId}}
