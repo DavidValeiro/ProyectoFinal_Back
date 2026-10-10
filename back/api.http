@@ -1,53 +1,126 @@
 ###
-# Pruebas de la API MOUSIN.
-# Requiere la extensión "REST Client" (humao.rest-client) en VS Code.
-# Ejecuta cada petición con el botón "Send Request" que aparece encima.
+# ============================================================================
+# LOG DE PRUEBAS DE LA API MOUSIN
+# ============================================================================
+# Ejecución real realizada el 2026-10-10 (servidor local en http://localhost:3000,
+# `node index.js`). Para cada petición se muestra la respuesta real obtenida.
+# El bloque de petición es reutilizable: envíalo con la extensión "REST Client"
+# (humao.rest-client) de VS Code para repetir el test.
 #
-# Antes de empezar: arranca el servidor en local con `node index.js`
-# para que la API escuche en http://localhost:3000
+# Datos de la ejecución:
+#   userId    = 6aca8a7dc7da16c26418fa57  (usuario de prueba, eliminado al final)
+#   productId = 6aca8a7dc7da16c26418fa58  (producto de prueba, eliminado al final)
+#   orderId   = 6aca8a7ec7da16c26418fa7b  (pedido de prueba, eliminado al final)
+#   email     = david+20261010185701@example.com
+# Dos casos de error añadidos (login inválido y ruta inexistente).
+# Resultado global: 19/19 peticiones respondieron correctamente.
+# ============================================================================
 
 @baseUrl = http://localhost:3000
 
-# Rellena estos valores con ids reales devueltos por las peticiones de creación.
-@userId = REEMPLAZA_CON_UN_ID_DE_USUARIO
-@productId = REEMPLAZA_CON_UN_ID_DE_PRODUCTO
-@orderId = REEMPLAZA_CON_UN_ID_DE_PEDIDO
+@userId = 6aca8a7dc7da16c26418fa57
+@productId = 6aca8a7dc7da16c26418fa58
+@orderId = 6aca8a7ec7da16c26418fa7b
 
-### Comprobación de estado del servidor
+### [1/19] Comprobación de estado del servidor
 GET {{baseUrl}}/
+Accept: text/plain
+
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# Welcome to the MOUSIN API
 
 ### ---------------------------------------------------------------
 ### USUARIOS
 ### ---------------------------------------------------------------
 
-### Crear usuario
+### [2/19] Crear usuario
 POST {{baseUrl}}/users
 Content-Type: application/json
 
 {
   "name": "David Valeiro",
-  "email": "david@example.com",
+  "email": "david+20261010185701@example.com",
   "password": "secreto123",
   "is_admin": true
 }
 
-### Iniciar sesión
-# @name login
+### -> Respuesta real (201 Created)
+# HTTP/1.1 201 Created
+# {
+#   "name": "David Valeiro",
+#   "email": "david+20261010185701@example.com",
+#   "is_admin": true,
+#   "_id": "6aca8a7dc7da16c26418fa57",
+#   "createdAt": "2026-10-10T18:57:01.332Z",
+#   "updatedAt": "2026-10-10T18:57:01.332Z",
+#   "__v": 0
+# }
+
+### [3/19] Iniciar sesión
 POST {{baseUrl}}/users/login
 Content-Type: application/json
 
 {
-  "email": "david@example.com",
+  "email": "david+20261010185701@example.com",
   "password": "secreto123"
 }
 
-### Listar usuarios
+### -> Respuesta real (200 OK). Token JWT (1 h) truncado en este log:
+# HTTP/1.1 200 OK
+# {
+#   "_id": "6aca8a7dc7da16c26418fa57",
+#   "name": "David Valeiro",
+#   "email": "david+20261010185701@example.com",
+#   "is_admin": true,
+#   "createdAt": "2026-10-10T18:57:01.332Z",
+#   "updatedAt": "2026-10-10T18:57:01.332Z",
+#   "__v": 0,
+#   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6... (truncado)"
+# }
+
+### [4/19] Login con credenciales incorrectas
+POST {{baseUrl}}/users/login
+Content-Type: application/json
+
+{
+  "email": "nadie@example.com",
+  "password": "incorrecta"
+}
+
+### -> Respuesta real (401 Unauthorized)
+# HTTP/1.1 401 Unauthorized
+# {"message":"Email o contraseña incorrectos"}
+
+### [5/19] Listar usuarios
 GET {{baseUrl}}/users
 
-### Obtener usuario por id
+### -> Respuesta real (200 OK). Lista completa resumida: 6 usuarios (el último
+#     es el de prueba). Cuerpo truncado en este log por brevedad:
+# HTTP/1.1 200 OK
+# [
+#   { "_id": "6aca7730e3706dbc5d295944", "name": "Gustavo Pruebas", ... },
+#   { "_id": "6aca7730e3706dbc5d295945", "name": "David Valeiro", ... },
+#   { "_id": "6aca7730e3706dbc5d295946", "name": "User 1234", ... },
+#   ... (6 usuarios en total)
+# ]
+
+### [6/19] Obtener usuario por id
 GET {{baseUrl}}/users/{{userId}}
 
-### Actualizar usuario
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {
+#   "_id": "6aca8a7dc7da16c26418fa57",
+#   "name": "David Valeiro",
+#   "email": "david+20261010185701@example.com",
+#   "is_admin": true,
+#   "createdAt": "2026-10-10T18:57:01.332Z",
+#   "updatedAt": "2026-10-10T18:57:01.332Z",
+#   "__v": 0
+# }
+
+### [7/19] Actualizar usuario
 PUT {{baseUrl}}/users/{{userId}}
 Content-Type: application/json
 
@@ -56,31 +129,40 @@ Content-Type: application/json
   "is_admin": true
 }
 
-### Eliminar usuario
-DELETE {{baseUrl}}/users/{{userId}}
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {
+#   "_id": "6aca8a7dc7da16c26418fa57",
+#   "name": "David Valeiro Actualizado",
+#   "email": "david+20261010185701@example.com",
+#   "is_admin": true,
+#   "createdAt": "2026-10-10T18:57:01.332Z",
+#   "updatedAt": "2026-10-10T18:57:01.580Z",
+#   "__v": 0
+# }
 
 ### ---------------------------------------------------------------
 ### PRODUCTOS
 ### ---------------------------------------------------------------
 
-### Crear producto
+### [8/19] Crear producto
 POST {{baseUrl}}/products
 Content-Type: application/json
 
 {
-  "title": "Teclado mecánico MOUSIN Pro",
-  "subtitle": "Switches táctiles, retroiluminación RGB",
+  "title": "Teclado mecanico MOUSIN Pro",
+  "subtitle": "Switches tactiles, retroiluminacion RGB",
   "price": 129.99,
   "compareAtPrice": 159.99,
   "badge": "Nuevo",
-  "category": "Periféricos / Teclados",
-  "description": "Teclado mecánico de grado profesional con estructura de aluminio.",
+  "category": "Perifericos / Teclados",
+  "description": "Teclado mecanico de grado profesional con estructura de aluminio.",
   "rating": 4.5,
   "reviews": 128,
   "stock": 25,
   "specs": [
-    { "icon": "keyboard_capslock", "label": "Switches", "value": "Táctiles" },
-    { "icon": "bolt", "label": "Conexión", "value": "USB-C" }
+    { "icon": "keyboard_capslock", "label": "Switches", "value": "Tactiles" },
+    { "icon": "bolt", "label": "Conexion", "value": "USB-C" }
   ],
   "image": "https://example.com/images/keyboard.jpg",
   "images": [
@@ -89,30 +171,104 @@ Content-Type: application/json
   ]
 }
 
-### Listar productos
+### -> Respuesta real (201 Created)
+# HTTP/1.1 201 Created
+# {
+#   "title": "Teclado mecanico MOUSIN Pro",
+#   "subtitle": "Switches tactiles, retroiluminacion RGB",
+#   "price": 129.99,
+#   "compareAtPrice": 159.99,
+#   "badge": "Nuevo",
+#   "category": "Perifericos / Teclados",
+#   "description": "Teclado mecanico de grado profesional con estructura de aluminio.",
+#   "rating": 4.5,
+#   "reviews": 128,
+#   "stock": 25,
+#   "specs": [
+#     { "icon": "keyboard_capslock", "label": "Switches", "value": "Tactiles", "_id": "6aca8a7dc7da16c26418fa59" },
+#     { "icon": "bolt", "label": "Conexion", "value": "USB-C", "_id": "6aca8a7dc7da16c26418fa5a" }
+#   ],
+#   "image": "https://example.com/images/keyboard.jpg",
+#   "images": ["https://example.com/images/keyboard.jpg", "https://example.com/images/keyboard-2.jpg"],
+#   "_id": "6aca8a7dc7da16c26418fa58",
+#   "createdAt": "2026-10-10T18:57:01.632Z",
+#   "updatedAt": "2026-10-10T18:57:01.632Z",
+#   "__v": 0
+# }
+
+### [9/19] Listar productos
 GET {{baseUrl}}/products
 
-### Obtener producto por id
+### -> Respuesta real (200 OK). Lista con imágenes base64; truncada en este log:
+# HTTP/1.1 200 OK
+# [ { "_id": "6aca599a0483f10ff60c4c31", "title": "HEPTIC MK-9 Precision", ... },
+#   { "_id": "6aca8a7dc7da16c26418fa58", "title": "Teclado mecanico MOUSIN Pro", ... }, ... ]
+
+### [10/19] Obtener producto por id
 GET {{baseUrl}}/products/{{productId}}
 
-### Actualizar producto
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {
+#   "_id": "6aca8a7dc7da16c26418fa58",
+#   "title": "Teclado mecanico MOUSIN Pro",
+#   "subtitle": "Switches tactiles, retroiluminacion RGB",
+#   "price": 129.99,
+#   "compareAtPrice": 159.99,
+#   "badge": "Nuevo",
+#   "category": "Perifericos / Teclados",
+#   "description": "Teclado mecanico de grado profesional con estructura de aluminio.",
+#   "rating": 4.5,
+#   "reviews": 128,
+#   "stock": 25,
+#   "specs": [
+#     { "icon": "keyboard_capslock", "label": "Switches", "value": "Tactiles", "_id": "..." },
+#     { "icon": "bolt", "label": "Conexion", "value": "USB-C", "_id": "..." }
+#   ],
+#   "image": "https://example.com/images/keyboard.jpg",
+#   "images": ["https://example.com/images/keyboard.jpg", "https://example.com/images/keyboard-2.jpg"],
+#   "createdAt": "2026-10-10T18:57:01.632Z",
+#   "updatedAt": "2026-10-10T18:57:01.632Z",
+#   "__v": 0
+# }
+
+### [11/19] Actualizar producto
 PUT {{baseUrl}}/products/{{productId}}
 Content-Type: application/json
 
 {
-  "title": "Teclado mecánico MOUSIN Pro v2",
+  "title": "Teclado mecanico MOUSIN Pro v2",
   "price": 119.99,
   "stock": 30
 }
 
-### Eliminar producto
-DELETE {{baseUrl}}/products/{{productId}}
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {
+#   "_id": "6aca8a7dc7da16c26418fa58",
+#   "title": "Teclado mecanico MOUSIN Pro v2",
+#   "subtitle": "Switches tactiles, retroiluminacion RGB",
+#   "price": 119.99,
+#   "compareAtPrice": 159.99,
+#   "badge": "Nuevo",
+#   "category": "Perifericos / Teclados",
+#   "description": "Teclado mecanico de grado profesional con estructura de aluminio.",
+#   "rating": 4.5,
+#   "reviews": 128,
+#   "stock": 30,
+#   "specs": [...],
+#   "image": "https://example.com/images/keyboard.jpg",
+#   "images": [...],
+#   "createdAt": "2026-10-10T18:57:01.632Z",
+#   "updatedAt": "2026-10-10T18:57:02.515Z",
+#   "__v": 0
+# }
 
 ### ---------------------------------------------------------------
 ### PEDIDOS
 ### ---------------------------------------------------------------
 
-### Crear pedido (calcula el total y descuenta stock del producto)
+### [12/19] Crear pedido (calcula total y descuenta stock)
 POST {{baseUrl}}/orders
 Content-Type: application/json
 
@@ -124,13 +280,59 @@ Content-Type: application/json
   "orderStatus": "Pending"
 }
 
-### Listar pedidos
+### -> Respuesta real (201 Created). totalPrice = 119.99 × 2 = 239.98
+# HTTP/1.1 201 Created
+# {
+#   "user": "6aca8a7dc7da16c26418fa57",
+#   "products": [
+#     { "product": "6aca8a7dc7da16c26418fa58", "quantity": 2, "_id": "6aca8a7ec7da16c26418fa7c" }
+#   ],
+#   "totalPrice": 239.98,
+#   "orderStatus": "Pending",
+#   "_id": "6aca8a7ec7da16c26418fa7b",
+#   "createdAt": "2026-10-10T18:57:02.600Z",
+#   "updatedAt": "2026-10-10T18:57:02.600Z",
+#   "__v": 0
+# }
+
+### [13/19] Listar pedidos
 GET {{baseUrl}}/orders
 
-### Obtener pedido por id
+### -> Respuesta real (200 OK). Pedidos preexistentes + el de prueba; truncada:
+# HTTP/1.1 200 OK
+# [
+#   { "_id": "6aca7730e3706dbc5d29594f", "user": { "...": "Gustavo Pruebas" }, "totalPrice": 378, "orderStatus": "Pending", ... },
+#   { "_id": "6aca7730e3706dbc5d295956", "user": { "...": "David Valeiro" }, "totalPrice": 318, "orderStatus": "Shipped", ... },
+#   { "_id": "6aca8a7ec7da16c26418fa7b", "user": { "...": "David Valeiro Actualizado" }, "totalPrice": 239.98, "orderStatus": "Pending", ... }
+# ]
+
+### [14/19] Obtener pedido por id (con usuario y producto poblados)
 GET {{baseUrl}}/orders/{{orderId}}
 
-### Actualizar pedido
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {
+#   "_id": "6aca8a7ec7da16c26418fa7b",
+#   "user": {
+#     "_id": "6aca8a7dc7da16c26418fa57",
+#     "name": "David Valeiro Actualizado",
+#     "email": "david+20261010185701@example.com"
+#   },
+#   "products": [
+#     {
+#       "product": { "_id": "6aca8a7dc7da16c26418fa58", "title": "Teclado mecanico MOUSIN Pro v2", "price": 119.99 },
+#       "quantity": 2,
+#       "_id": "6aca8a7ec7da16c26418fa7c"
+#     }
+#   ],
+#   "totalPrice": 239.98,
+#   "orderStatus": "Pending",
+#   "createdAt": "2026-10-10T18:57:02.600Z",
+#   "updatedAt": "2026-10-10T18:57:02.600Z",
+#   "__v": 0
+# }
+
+### [15/19] Actualizar pedido (devuelve stock y lo vuelve a descontar)
 PUT {{baseUrl}}/orders/{{orderId}}
 Content-Type: application/json
 
@@ -142,5 +344,49 @@ Content-Type: application/json
   "orderStatus": "Shipped"
 }
 
-### Eliminar pedido (devuelve el stock a los productos)
+### -> Respuesta real (201 Created). totalPrice = 119.99 × 1 = 119.99
+# HTTP/1.1 201 Created
+# {
+#   "_id": "6aca8a7ec7da16c26418fa7b",
+#   "user": "6aca8a7dc7da16c26418fa57",
+#   "products": [
+#     { "product": "6aca8a7dc7da16c26418fa58", "quantity": 1, "_id": "6aca8a7ec7da16c26418fa89" }
+#   ],
+#   "totalPrice": 119.99,
+#   "orderStatus": "Shipped",
+#   "createdAt": "2026-10-10T18:57:02.600Z",
+#   "updatedAt": "2026-10-10T18:57:02.970Z",
+#   "__v": 0
+# }
+
+### [16/19] Eliminar pedido (devuelve el stock)
 DELETE {{baseUrl}}/orders/{{orderId}}
+
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {"message":"Order deleted"}
+
+### [17/19] Eliminar usuario
+DELETE {{baseUrl}}/users/{{userId}}
+
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {"message":"User deleted"}
+
+### [18/19] Eliminar producto
+DELETE {{baseUrl}}/products/{{productId}}
+
+### -> Respuesta real (200 OK)
+# HTTP/1.1 200 OK
+# {"message":"Product deleted"}
+
+### ---------------------------------------------------------------
+### COMPROBACIONES ADICIONALES
+### ---------------------------------------------------------------
+
+### [19/19] Ruta inexistente
+GET {{baseUrl}}/ruta-inexistente
+
+### -> Respuesta real (404 Not Found)
+# HTTP/1.1 404 Not Found
+# {"message":"Route not found"}
